@@ -1,40 +1,45 @@
 import { galleryItems } from "./gallery-items.js";
 // Change code below this line
-
-const gallery = document.querySelector(".gallery");
-const galleryElements = [];
-
-galleryItems.forEach((galleryItem) => {
-  const item = document.createElement("li");
-  const link = document.createElement("a");
-  const image = document.createElement("img");
-
-  item.classList.add("gallery__item");
-  link.classList.add("gallery__link");
-  image.classList.add("gallery__image");
-
-  link.href = galleryItem.original;
-  image.src = galleryItem.preview;
-  image.alt = galleryItem.description;
-
-  image.dataset.source = galleryItem.original;
-
-  item.append(link);
-  link.append(image);
-
-  galleryElements.push(item);
-});
-
-gallery.append(...galleryElements);
-
-console.log(galleryElements);
-
-document.querySelector(".gallery").onclick = () => {
-  basicLightbox
-    .create(
-      `
-		<img width="1400" height="900" src='https://cdn.pixabay.com/photo/2019/05/14/16/43/rchids-4202820_1280.jpg'>
-	`
-    )
-    .show();
+const galleryList = document.querySelector(".gallery");
+const galleryCard = ({ preview, original, description } = {}) => {
+  return `
+  <li class="gallery__item">
+  <a class="gallery__link" href="large-image.jpg">
+    <img
+      class="gallery__image"
+      src="${preview}"
+      data-source="${original}"
+      alt="${description}"
+    />
+  </a>
+</li>`;
 };
+const galleryAr = galleryItems.map((el) => galleryCard(el));
+
+galleryList.insertAdjacentHTML("afterbegin", galleryAr.join(""));
+
+// Модальне вікно
+
+const onImageClick = (event) => {
+  // відмінна дії за замовчуванням
+  event.preventDefault();
+
+  const currentTarget = event.target;
+  // перевірка на картинку
+
+  if (currentTarget.nodeName !== "IMG") {
+    return;
+  }
+  const instance = basicLightbox.create(
+    `<img src ="${currentTarget.dataset.source}" width="800"height="600">`
+  );
+  const escapeHandler = (event) => {
+    if (event.code === "Escape") {
+      instance.close();
+      document.removeEventListener("keydown", escapeHandler);
+    }
+  };
+  instance.show();
+  document.addEventListener("keydown", escapeHandler);
+};
+galleryList.addEventListener("click", onImageClick);
